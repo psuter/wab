@@ -1,0 +1,17 @@
+{
+  "name": "wab",
+  "version": "1.0.0",
+  "description": "A browser for OpenWhisk activations.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "whisk": "node whisk.js"
+  },
+  "author": "Philippe Suter",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "blessed": "0.1.81",
+    "openwhisk": "2.1.6",
+    "homedir": "0.6.0"
+  }
+}
