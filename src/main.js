@@ -33,7 +33,7 @@ function main () {
     openWhiskClient = owClient
     ui.setStatus('Loading activations...')
 
-    owClient.activations.list({ skip: 0, limit: 100 }).then(result => {
+    owClient.activations.list({ skip: 0, limit: 100, docs: true }).then(result => {
       ui.setStatus('Activations loaded.')
       ui.addActivations(result)
     })

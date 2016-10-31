@@ -13,6 +13,7 @@
     "blessed": "0.1.81",
     "homedir": "0.6.0",
     "lokijs": "1.4.1",
+    "moment": "2.15.2",
     "openwhisk": "2.1.6"
   }
 }

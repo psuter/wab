@@ -1,4 +1,5 @@
 const blessed = require('blessed')
+const moment = require('moment')
 
 const jsonformat = require('./jsonformat')
 
@@ -81,7 +82,8 @@ function UI (activationFetcher) {
       }
     },
     keys: true,
-    vi: true
+    vi: true,
+    tags: true
   })
 
   this.activationPane = blessed.text({
@@ -130,9 +132,21 @@ UI.prototype.rerender = function (doIt) {
   }
 }
 
+function isTrigger (a) {
+  return typeof a.start === 'number' && a.end === 0
+}
+
+function makeActivationRow (a) {
+  const date = a.start || a.end
+  const dateStr = date
+    ? moment(date).format('YYYY-MM-DD HH:mm:ss')
+    : '                   '
+  return `{blue-fg}${dateStr}{/blue-fg} {green-fg}${a.activationId}{/green-fg} {bold}${a.name}{/bold}`
+}
+
 UI.prototype.addActivations = function (activations) {
   for (let a of activations) {
-    let txt = `${a.activationId} ${a.name}`
+    let txt = makeActivationRow(a)
     this.activationList.pushItem(txt)
   }
   this.rerender(true)
