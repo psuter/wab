@@ -1,6 +1,6 @@
 const openwhisk = require('openwhisk')
 
-const ui = require('./ui')
+const UI = require('./ui')
 const wskprops = require('./wskprops')
 
 function loadClient () {
@@ -19,17 +19,15 @@ let openWhiskClient = null
 
 function fetchActivation (activationId) {
   return openWhiskClient.activations.get({ activation: activationId }).catch(error => {
-
-
     console.log(`[${activationId}] ${typeof activationId}`)
     console.log(error)
-    
+
     //ui.terminate()
   })
 }
 
 function main () {
-  ui.start(fetchActivation)
+  const ui = new UI(fetchActivation)
 
   loadClient().then(owClient => {
     openWhiskClient = owClient

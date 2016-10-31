@@ -11,7 +11,8 @@
   "license": "Apache-2.0",
   "dependencies": {
     "blessed": "0.1.81",
-    "openwhisk": "2.1.6",
-    "homedir": "0.6.0"
+    "homedir": "0.6.0",
+    "lokijs": "1.4.1",
+    "openwhisk": "2.1.6"
   }
 }
