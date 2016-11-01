@@ -3,8 +3,10 @@ const moment = require('moment')
 
 const jsonformat = require('./jsonformat')
 
-function UI (activationFetcher) {
+function UI (activationDB) {
   const self = this
+
+  this.activationDB = activationDB
 
   // One of: 'LIST', 'DETAILS'
   this.mode = 'LIST'
@@ -14,9 +16,6 @@ function UI (activationFetcher) {
 
   // The activation that was last loaded.
   this.currentActivation = null
-
-  // FIXME replace with a proper class.
-  this.fetchActivation = activationFetcher
 
   this.screen = blessed.screen({
     smartCSR: true,
@@ -124,6 +123,12 @@ function UI (activationFetcher) {
   })
 
   this.setListMode()
+
+  const firstActivations = this.activationDB.on('newActivations', as => {
+    self.addActivations(as)
+  })
+
+  this.addActivations(firstActivations)
 }
 
 UI.prototype.rerender = function (doIt) {
@@ -232,7 +237,7 @@ UI.prototype.loadActivation = function (id) {
 
   this.setStatus(`Retrieving activation ${activationId}...`)
 
-  this.fetchActivation(activationId).then(activation => {
+  this.activationDB.fetchActivation(activationId).then(activation => {
     self.currentActivation = activation
     self.showCurrentActivation()
     self.rerender(true)
@@ -256,6 +261,7 @@ UI.prototype.showCurrentActivation = function () {
 }
 
 UI.prototype.terminate = function () {
+  this.activationDB.shutdown()
   process.exit(0)
 }
 

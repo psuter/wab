@@ -1,5 +1,6 @@
 const openwhisk = require('openwhisk')
 
+const ActivationDB = require('./activationdb')
 const UI = require('./ui')
 const wskprops = require('./wskprops')
 
@@ -15,31 +16,12 @@ function loadClient () {
   })
 }
 
-let openWhiskClient = null
-
-function fetchActivation (activationId) {
-  return openWhiskClient.activations.get({ activation: activationId }).catch(error => {
-    console.log(`[${activationId}] ${typeof activationId}`)
-    console.log(error)
-
-    //ui.terminate()
-  })
-}
-
 function main () {
-  const ui = new UI(fetchActivation)
-
   loadClient().then(owClient => {
-    openWhiskClient = owClient
-    ui.setStatus('Loading activations...')
-
-    owClient.activations.list({ skip: 0, limit: 100, docs: true }).then(result => {
-      ui.setStatus('Activations loaded.')
-      ui.addActivations(result)
-    })
+    const activationDB = new ActivationDB(owClient)
+    const ui = new UI(activationDB)
   }).catch(error => {
     console.error(error)
-    ui.terminate()
   })
 }
 
