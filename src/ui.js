@@ -133,7 +133,15 @@ UI.prototype.rerender = function (doIt) {
 }
 
 function isTrigger (a) {
-  return typeof a.start === 'number' && a.end === 0
+  return typeof a.start === 'number' && a.end === 0 && a.cause === undefined
+}
+
+function isRule (a) {
+  return a.cause && true
+}
+
+function isAction (a) {
+  return typeof a.start === 'number' && typeof a.end === 'number' && a.end !== 0
 }
 
 function makeActivationRow (a) {
@@ -141,7 +149,13 @@ function makeActivationRow (a) {
   const dateStr = date
     ? moment(date).format('YYYY-MM-DD HH:mm:ss')
     : '                   '
-  return `{blue-fg}${dateStr}{/blue-fg} {green-fg}${a.activationId}{/green-fg} {bold}${a.name}{/bold}`
+  let kindChar = '?'
+
+  if (isTrigger(a)) kindChar = `{red-fg}T{/red-fg}`
+  else if (isRule(a)) kindChar = `{yellow-fg}R{/yellow-fg}`
+  else if (isAction(a)) kindChar = `{blue-fg}A{/blue-fg}`
+
+  return `{blue-fg}${dateStr}{/blue-fg} {green-fg}${a.activationId}{/green-fg} ${kindChar} ${a.name}`
 }
 
 UI.prototype.addActivations = function (activations) {
