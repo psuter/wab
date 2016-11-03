@@ -14,32 +14,41 @@ const path = require('path')
 function ActivationDB (openWhiskClient, options = {}) {
   const self = this
 
-  this.db = new Loki(path.join(homedir(), '.wskwabdb.json'))
+  const dbFileName = path.join(homedir(), '.wskwabdb.json')
 
-  this.activationDB = this.db.addCollection('activations', {
-    unique: [ 'activationId' ]
-  })
+  this.activationDB = null
 
   this.pollingFrequency = +options.pollingFrequency || 0
   this.client = openWhiskClient
   this.listeners = []
 
-  // 0 in this array is always most recent.
-  this.activations = []
-
-  self.onLokiLoaded()
+  this.db = new Loki(dbFileName, {
+    autosave: true,
+    autosaveInterval: 1000 * 10,
+    autoload: true,
+    persistenceAdapter: 'fs',
+    autoloadCallback: () => self.onLokiLoaded()
+  })
 }
 
 ActivationDB.prototype.onLokiLoaded = function () {
-  /*this.activationDB = this.db.getCollection('activations')
-  if (this.activationDB === null) {
-    this.activationDB = this.db.addCollection('activations')
+  this.activationDB = this.db.getCollection('activations')
+  if (!this.activationDB) {
+    this.activationDB = this.db.addCollection('activations', {
+      unique: [ 'activationId' ]
+    })
   }
-*/
+
   if (this.pollingFrequency > 0) {
     this.pollingIntervalID = setInterval(this.fetchActivations(), this.pollingFrequency)
   } else {
     this.pollingIntervalID = null
+  }
+
+  if (this.activationDB.data.length > 0 && this.listeners.length > 0) {
+    for (let listener of this.listeners) {
+      listener(this.activationDB.chain().find().simplesort('start', true).data())
+    }
   }
 
   // First one is free.
@@ -49,7 +58,7 @@ ActivationDB.prototype.onLokiLoaded = function () {
 ActivationDB.prototype.fetchActivations = function () {
   const self = this
 
-  const startingEmpty = (this.activations.length === 0)
+  const startingEmpty = (this.activationDB.data.length === 0)
 
   let options = {
     skip: 0,
@@ -58,15 +67,22 @@ ActivationDB.prototype.fetchActivations = function () {
   }
 
   if (!startingEmpty) {
-    options.since = this.activations[0].start
+    options.since = this.activationDB.data[0].start
   }
 
   this.client.activations.list(options).then(activations => {
-    // Loki handles batch insert just fine.
-    self.activationDB.insert(activations)
+    const withoutDuplicates = activations.filter(a => {
+      const r = self.activationDB.by('activationId', a.activationId)
+      return !r
+    })
 
-    for (let listener of self.listeners) {
-      listener(activations)
+    if (withoutDuplicates.length > 0) {
+      self.activationDB.insert(withoutDuplicates)
+      self.db.save()
+
+      for (let listener of self.listeners) {
+        listener(activations)
+      }
     }
   })
 }
@@ -92,7 +108,12 @@ ActivationDB.prototype.shutdown = function () {
 ActivationDB.prototype.on = function (eventName, callback) {
   if (eventName === 'newActivations') {
     this.listeners.push(callback)
-    return this.activations.slice()
+
+    if (this.activationDB) {
+      return this.activationDB.chain().find().simplesort('start', true).data()
+    } else {
+      return []
+    }
   } else {
     throw new Error(`Unsupported event type: ${eventName}.`)
   }
