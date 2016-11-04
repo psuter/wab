@@ -18,7 +18,7 @@ function loadClient () {
 
 function main () {
   loadClient().then(owClient => {
-    const activationDB = new ActivationDB(owClient)
+    const activationDB = new ActivationDB(owClient, { pollingFrequency: 10000 })
     const ui = new UI(activationDB)
   }).catch(error => {
     console.error(error)

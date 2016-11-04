@@ -1,3 +1,5 @@
+const moment = require('moment')
+
 function render (obj) {
   // return JSON.stringify(obj, null, 2)
   return r(obj, 0, true)
@@ -65,6 +67,24 @@ function ro (obj, indent, topLevel = false) {
   return result + i(indent) + '}'
 }
 
+function renderLogs (logArray) {
+  let result = ''
+  for (let line of logArray) {
+    // Expected format..
+    if (line.length >= 38 && line[37] === ':' && line[30] === ' ') {
+      const datePart = line.substring(0, 30)
+      const strmPart = line.substring(31, 37)
+      const dateStr = moment(datePart).format('YYYY-MM-DD HH:mm:ss')
+
+      let txt = `${dateStr}: ${line.substring(39)}`
+      result = result + (strmPart === 'stderr' ? `{red-fg}${txt}{/red-fg}` : txt) + '\n'
+    } else {
+      result = result + line + '\n'
+    }
+  }
+  return result
+}
+
 function colorObjectKey (str) {
   return `{blue-fg}${str}{/blue-fg}`
 }
@@ -74,3 +94,4 @@ function colorConst (str) {
 }
 
 module.exports.render = render
+module.exports.renderLogs = renderLogs

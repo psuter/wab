@@ -11,8 +11,8 @@ function UI (activationDB) {
   // One of: 'LIST', 'DETAILS'
   this.mode = 'LIST'
 
-  // If true, only the result of an activation is shown.
-  this.activationResultMode = false
+  // One of: 'FULL', 'RESULT', 'LOGS'
+  this.activationResultMode = 'FULL'
 
   // The activation that was last loaded.
   this.currentActivation = null
@@ -102,6 +102,10 @@ function UI (activationDB) {
     self.terminate()
   })
 
+  this.screen.key([ 'C-r' ], (ch, key) => {
+    self.activationDB.fetchActivations()
+  })
+
   this.screen.key([ 'q', 'escape' ], (ch, key) => {
     if (self.mode === 'LIST') {
       self.terminate()
@@ -118,7 +122,20 @@ function UI (activationDB) {
   })
 
   this.activationPane.key([ 'r' ], (ch, key) => {
-    self.activationResultMode = !self.activationResultMode
+    if (self.activationResultMode === 'RESULT') {
+      self.activationResultMode = 'FULL'
+    } else {
+      self.activationResultMode = 'RESULT'
+    }
+    self.showCurrentActivation()
+  })
+
+  this.activationPane.key([ 'l' ], (ch, key) => {
+    if (self.activationResultMode === 'LOGS') {
+      self.activationResultMode = 'FULL'
+    } else {
+      self.activationResultMode = 'LOGS'
+    }
     self.showCurrentActivation()
   })
 
@@ -164,9 +181,12 @@ function makeActivationRow (a) {
 }
 
 UI.prototype.addActivations = function (activations) {
-  for (let a of activations) {
+  for (let i in activations) {
+    // One block of activations has the most recent at index 0. Reversing them
+    // so that we can always add to the front of the list.
+    let a = activations[activations.length - 1 - i]
     let txt = makeActivationRow(a)
-    this.activationList.pushItem(txt)
+    this.activationList.unshiftItem(txt)
   }
   this.rerender(true)
 
@@ -248,17 +268,27 @@ UI.prototype.loadActivation = function (id) {
 }
 
 UI.prototype.showCurrentActivation = function () {
-  let toDisplay = this.activationResultMode
-    ? (((this.currentActivation || {}).response) || {}).result
-    : this.currentActivation
+  let toDisplay = ''
 
-  if (isRule(this.currentActivation) && this.activationResultMode) {
-    this.activationPane.setContent('No {blue-fg}result{/blue-fg} to show for rule activations.')
-  } else if (toDisplay) {
-    this.activationPane.setContent(jsonformat.render(toDisplay))
+  if (this.activationResultMode === 'RESULT') {
+    if (isRule(this.currentActivation)) {
+      toDisplay = 'No {blue-fg}result{/blue-fg} to show for rule activations.'
+    } else {
+      toDisplay = jsonformat.render((((this.currentActivation || {}).response) || {}).result)
+    }
+  } else if (this.activationResultMode === 'LOGS') {
+    if (isRule(this.currentActivation)) {
+      toDisplay = 'No {blue-fg}logs{/blue-fg} to show for rule activations.'
+    } else if (isTrigger(this.currentActivation)) {
+      toDisplay = 'No {blue-fg}logs{/blue-fg} to show for trigger activations.'
+    } else {
+      toDisplay = jsonformat.renderLogs(((this.currentActivation || {}).logs))
+    }
   } else {
-    this.activationPane.setContent('')
+    toDisplay = jsonformat.render(this.currentActivation)
   }
+
+  this.activationPane.setContent(toDisplay)
   this.rerender(true)
 }
 

@@ -24,7 +24,7 @@ function ActivationDB (openWhiskClient, options = {}) {
 
   this.db = new Loki(dbFileName, {
     autosave: true,
-    autosaveInterval: 1000 * 10,
+    autosaveInterval: 1000,
     autoload: true,
     persistenceAdapter: 'fs',
     autoloadCallback: () => self.onLokiLoaded()
@@ -40,7 +40,7 @@ ActivationDB.prototype.onLokiLoaded = function () {
   }
 
   if (this.pollingFrequency > 0) {
-    this.pollingIntervalID = setInterval(this.fetchActivations(), this.pollingFrequency)
+    this.pollingIntervalID = setInterval(() => this.fetchActivations(), this.pollingFrequency)
   } else {
     this.pollingIntervalID = null
   }
@@ -67,7 +67,7 @@ ActivationDB.prototype.fetchActivations = function () {
   }
 
   if (!startingEmpty) {
-    options.since = this.activationDB.data[0].start
+    options.since = this.activationDB.chain().find().simplesort('start', true).data()[0].start
   }
 
   this.client.activations.list(options).then(activations => {
@@ -81,7 +81,7 @@ ActivationDB.prototype.fetchActivations = function () {
       self.db.save()
 
       for (let listener of self.listeners) {
-        listener(activations)
+        listener(withoutDuplicates)
       }
     }
   })
