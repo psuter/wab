@@ -1,6 +1,6 @@
 function render (obj) {
   // return JSON.stringify(obj, null, 2)
-  return r(obj)
+  return r(obj, 0, true)
 }
 
 function i (n) {
@@ -11,7 +11,7 @@ function i (n) {
   return result
 }
 
-function r (any, indent = 0) {
+function r (any, indent = 0, topLevel = false) {
   const to = typeof any
 
   if (to === 'boolean') {
@@ -24,16 +24,16 @@ function r (any, indent = 0) {
     if (any === null) {
       return colorConst('null')
     } else if (Array.isArray(any)) {
-      return ra(any, indent)
+      return ra(any, indent, topLevel)
     } else {
-      return ro(any, indent)
+      return ro(any, indent, topLevel)
     }
   } else {
     throw new Error(`Unsupported type: ${to}.`)
   }
 }
 
-function ra (arr, indent) {
+function ra (arr, indent, topLevel = false) {
   // FIXME inline arrays for numbers/booleans/nulls/empty things?
   if (arr.length === 0) {
     return '[]'
@@ -46,10 +46,14 @@ function ra (arr, indent) {
   return result + i(indent) + ']'
 }
 
-function ro (obj, indent) {
+function ro (obj, indent, topLevel = false) {
   let result = '{\n'
   let empty = true
   for (let k in obj) {
+    if (topLevel && k === '$loki') {
+      // A little hackish, I'll give you that.
+      continue
+    }
     empty = false
     result = result + i(indent + 1) + colorObjectKey(JSON.stringify(k)) + ': ' + r(obj[k], indent + 1) + ',\n'
   }
