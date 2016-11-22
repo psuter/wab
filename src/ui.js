@@ -138,7 +138,7 @@ UI.prototype.rerender = function (doIt) {
 }
 
 function isTrigger (a) {
-  return typeof a.start === 'number' && a.end === 0 && a.cause === undefined
+  return typeof a.start === 'number' && a.end === undefined && a.cause === undefined
 }
 
 function isRule (a) {
@@ -248,11 +248,13 @@ UI.prototype.loadActivation = function (id) {
 }
 
 UI.prototype.showCurrentActivation = function () {
-  const toDisplay = this.activationResultMode
+  let toDisplay = this.activationResultMode
     ? (((this.currentActivation || {}).response) || {}).result
     : this.currentActivation
 
-  if (toDisplay) {
+  if (isRule(this.currentActivation) && this.activationResultMode) {
+    this.activationPane.setContent('No {blue-fg}result{/blue-fg} to show for rule activations.')
+  } else if (toDisplay) {
     this.activationPane.setContent(jsonformat.render(toDisplay))
   } else {
     this.activationPane.setContent('')
