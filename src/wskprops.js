@@ -36,7 +36,7 @@ function parseContent (content) {
 function retrieve () {
   return new Promise(
     function (resolve, reject) {
-      const wskpropsPath = path.join(homedir(), '.wskprops')
+      const wskpropsPath = process.env['WSK_CONFIG_FILE'] || path.join(homedir(), '.wskprops')
 
       fs.readFile(wskpropsPath, (err, data) => {
         if (err) {
