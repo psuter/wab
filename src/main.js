@@ -9,7 +9,8 @@ function loadClient () {
     return openwhisk({
       api: `https://${props.apiHost}/api/v1/`,
       api_key: props.auth,
-      namespace: '_' // all activations live in the default namespace currently.
+      namespace: '_', // all activations live in the default namespace currently.
+      ignore_certs: process.env.NODE_TLS_REJECT_UNAUTHORIZED == "0"
     })
   }).catch(function (error) {
     console.error(`There was an error initializing the OpenWhisk client: ${error}.`)
