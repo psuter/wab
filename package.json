@@ -1,6 +1,6 @@
 {
   "name": "wab",
-  "version": "0.9.5",
+  "version": "0.9.6",
   "description": "A browser for OpenWhisk activations.",
   "main": "index.js",
   "author": "Philippe Suter",
