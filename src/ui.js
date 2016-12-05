@@ -159,7 +159,7 @@ function isTrigger (a) {
 }
 
 function isRule (a) {
-  return a.cause && true
+  return a.cause && a.end === undefined
 }
 
 function isAction (a) {
