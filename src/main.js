@@ -1,4 +1,5 @@
 const openwhisk = require('openwhisk')
+const pkgJson = require('../package.json')
 
 const ActivationDB = require('./activationdb')
 const UI = require('./ui')
@@ -18,6 +19,13 @@ function loadClient () {
 }
 
 function main () {
+  const commander = require('commander')
+
+  commander
+    .command(pkgJson.name)
+    .version(pkgJson.version)
+    .parse(process.argv)
+
   loadClient().then(owClient => {
     const activationDB = new ActivationDB(owClient, { pollingFrequency: 10000 })
     const ui = new UI(activationDB)
