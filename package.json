@@ -1,18 +1,33 @@
 {
   "name": "wab",
-  "version": "0.9.7",
+  "version": "0.9.8",
   "description": "A browser for OpenWhisk activations.",
   "main": "index.js",
   "author": "Philippe Suter",
   "license": "Apache-2.0",
-  "bin": {
-    "wab": "./bin/wab"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/psuter/wab.git"
   },
+  "bugs": {
+    "url": "https://github.com/psuter/wab/issues"
+  },
+  "keywords": [
+    "openwhisk",
+    "activations",
+    "browser",
+    "terminal",
+    "curses",
+    "ncurses"
+  ],
   "dependencies": {
     "blessed": "0.1.81",
     "homedir": "0.6.0",
     "lokijs": "1.4.1",
     "moment": "2.15.2",
     "openwhisk": "2.1.6"
+  },
+  "bin": {
+    "wab": "./bin/wab"
   }
 }
